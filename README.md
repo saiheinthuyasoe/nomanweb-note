@@ -8,6 +8,9 @@ This guide provides a complete roadmap for developing a Book Reader Web Applicat
 To create a web platform where users can read, upload, and monetize various types of comics and graphic novels from around the world, including Manga, Manhwa, Webtoons, American Comics, and other regional formats.
 
 ### Business Model
+- Only 2 types of users.
+- One type of user is admin.
+- One type of user is user.  
 - Every user can upload content.
 - Users need to purchase credits to read content.
 - Content uploaders earn a share of the credits spent on their content.
