@@ -211,7 +211,7 @@ public class SecurityConfig {
     }
 }
 ```
-### **7. Create a Basic Entity, Repository, Service and Controller for Testing**
+### **6. Create a Basic Entity, Repository, Service and Controller for Testing**
 Example:  ```src/model/Test.java ```
          ```src/repository/TestRepository.java ```
          ```src/service/TestService.java ```
