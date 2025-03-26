@@ -140,7 +140,7 @@ Create `logback-spring.xml` in `src/main/resources`:
 
 ---
 
-### **4. Main Application Class**  
+### **4. Modify Main Application Class**  
 ```java
 @SpringBootApplication
 @EnableJpaAuditing
@@ -159,12 +159,31 @@ public class BookReaderApplication {
 ```java
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
+                .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+ 
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+       
+        // Explicitly allow the frontend origin
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"));
+        config.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+ 
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }
 ```
@@ -182,7 +201,7 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/test/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -192,10 +211,15 @@ public class SecurityConfig {
     }
 }
 ```
+### **7. Create a Basic Entity, Repository, Service and Controller for Testing**
+Example: src/model/Test.java
+         src/repository/TestRepository.java
+         src/service/TestService.java
+         src/controller/TestController.java
 
 ---
 
-### **6. Environment Variables (`.env`)**  
+### **7. Environment Variables (`.env`)**  
 ```env
 # Database
 DB_URL=jdbc:postgresql://localhost:5432/bookreader
@@ -212,7 +236,7 @@ FILE_UPLOAD_DIR=./uploads
 
 ---
 
-### **7. `.gitignore`**  
+### **8. `.gitignore`**  
 ```gitignore
 # IDE
 .idea/
@@ -240,7 +264,7 @@ uploads/
 
 ---
 
-### **8. Swagger/OpenAPI Documentation**  
+### **9. Swagger/OpenAPI Documentation**  
 #### **a. Add Dependency**  
 ```xml
 <dependency>
@@ -252,15 +276,34 @@ uploads/
 
 #### **b. OpenAPI Configuration (`OpenApiConfig.java`)**  
 ```java
+
 @Configuration
 public class OpenApiConfig {
+
     @Bean
-    public OpenAPI bookReaderOpenAPI() {
+    public OpenAPI customOpenAPI() {
         return new OpenAPI()
-            .info(new Info()
-                .title("BookReader API")
-                .description("API documentation for BookReader Application")
-                .version("1.0"));
+                .info(new Info()
+                        .title("Book Reader API")
+                        .description("API for Book Reader Web Application")
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("Nomanweb Team")
+                                .email("contact@nomanweb.com")
+                                .url("https://nomanweb.com"))
+                        .license(new License()
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT")))
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()));
+    }
+
+    private SecurityScheme createAPIKeyScheme() {
+        return new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .bearerFormat("JWT")
+                .scheme("bearer");
     }
 }
 ```
@@ -275,8 +318,72 @@ springdoc.swagger-ui.tagsSorter=alpha
 springdoc.swagger-ui.tryItOutEnabled=true
 springdoc.swagger-ui.filter=true
 ```
+#### **d. Update SecurityConfig.java**
+```java
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/test/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/api-docs/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        
+        return http.build();
+    }
+}
+```
 
-#### **d. Access Swagger UI**  
+---
+#### **e. Add Documentation to a Controller (Example)**
+```java
+package com.nomanweb.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/test")
+@Tag(name = "Test", description = "Test API")
+public class TestController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestController.class);
+
+    @Operation(summary = "Test the API", description = "Returns a simple message to confirm the API is working")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved message"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping
+    public ResponseEntity<String> testEndpoint() {
+        logger.info("Test endpoint called");
+        return ResponseEntity.ok("Book Reader API is working!");
+    }
+}
+```
+
+---
+
+#### **f. Access Swagger UI**  
 Visit: [http://localhost:8080/api/swagger-ui.html](http://localhost:8080/api/swagger-ui.html)
 
 ---
