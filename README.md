@@ -82,7 +82,7 @@ To create a web platform where users can read, upload, and monetize various type
 - **Database**: PostgreSQL
 - **Authentication**: Spring Security with JWT
 - **ORM**: JPA/Hibernate with Spring Data
-- **File Storage**: Amazon S3 (or similar)
+- **File Storage**: Cloudflare R2 (or similar)
 - **Cache**: Redis (or similar)
 - **Search**: Elasticsearch (optional for advanced search)
 
