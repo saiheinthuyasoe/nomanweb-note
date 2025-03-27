@@ -83,8 +83,8 @@ To create a web platform where users can read, upload, and monetize various type
 - **Authentication**: Spring Security with JWT
 - **ORM**: JPA/Hibernate with Spring Data
 - **File Storage**: Cloudflare R2 (or similar)
-- **Cache**: Redis (or similar)
-- **Search**: Elasticsearch (optional for advanced search)
+- **Cache**: Redis Cloud (or similar)
+- **Search**: OpenSearch (self-hosted)
 
 ### Frontend
 - **Framework**: Next.js 14+ with App Router
@@ -97,7 +97,7 @@ To create a web platform where users can read, upload, and monetize various type
 ### DevOps & Infrastructure
 - **Containerization**: Docker
 - **CI/CD**: GitHub Actions
-- **Hosting**: AWS or similar cloud platform
+- **Hosting**: Render (Backend), Supabase(Database) and Vercel (Frontend)
 - **CDN**: Cloudflare or similar
 
 ## 4. Database Design
