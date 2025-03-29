@@ -21,7 +21,7 @@
 
 ### **Step 5: Implement Content Upload & Management**  
 - Create entities: `books`, `chapters`, `pages`, `categories`, `tags`  
-- Implement file uploads with Amazon S3  
+- Implement file uploads with Cloudflare R2 
 - Allow users to define credit costs for their books  
 
 ### **Step 6: Implement Reading & Progress Tracking**  
@@ -43,7 +43,7 @@
 
 ### **Step 10: Implement Search**  
 - Basic search with PostgreSQL  
-- Advanced search with Elasticsearch (optional)  
+- Advanced search with OpenSearch (self-hoted)  
 
 ---
 
